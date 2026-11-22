@@ -1,0 +1,802 @@
+<!--
+  ==========================================================
+  SETUP NOTE: what to change before you go live
+  ==========================================================
+  Search this file for the items below and edit only these:
+
+  1. SECRET_ROUTE       Your secret admin path (currently "adminpage").
+                        The admin page is at yoursite/#/adminpage
+                        Keep this private.
+  2. ADMIN_PASSWORD     The password for the admin page. Pick a strong one.
+  3. WHATSAPP_NUMBER    Digits only, with country code, no + or spaces (currently 96171110820).
+  4. GITHUB_OWNER       Your GitHub username.
+  5. GITHUB_REPO        The repository name (currently "OffRoadsellsLebanon").
+  6. GITHUB_BRANCH      Usually "main". Change only if your branch has a different name.
+
+  Do NOT put access tokens in this file. Paste the token into the
+  admin page instead. Car listings are managed on the admin page and
+  stored in cars.json, not in this file.
+  ==========================================================
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Off Roadsells Lebanon</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#15163F;
+  --ink:#0C0D27;
+  --white:#FFFFFF;
+  --mist:#F3F4F9;
+  --slate:#5B6080;
+  --line:#E2E4EE;
+  --danger:#A3262E;
+  --wa:#1EA952;
+  --wa-dark:#178A43;
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Barlow,system-ui,sans-serif;color:var(--ink);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.brand{font-family:"Barlow Condensed",Impact,sans-serif;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--navy);line-height:1.05}
+button,input,select,textarea{font:inherit}
+[hidden]{display:none !important}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[role="button"]:focus-visible{outline:3px solid #6C70C8;outline-offset:2px}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--navy);color:var(--white);border:none;border-radius:var(--radius);padding:12px 22px;font-weight:600;text-decoration:none;cursor:pointer;transition:background .2s}
+.btn:hover{background:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:var(--white);color:var(--navy);border:1.5px solid var(--navy)}
+.btn.ghost:hover{background:var(--mist)}
+.btn.danger{background:var(--white);color:var(--danger);border:1.5px solid var(--danger);padding:6px 12px;font-size:14px}
+.btn-wa{background:var(--wa);color:var(--white)}
+.btn-wa:hover{background:var(--wa-dark)}
+
+/* ---------- Landing: brand glides into the navbar ---------- */
+.hero{height:100vh;position:relative}
+/* Font size and position are set by JavaScript from scroll position.
+   Changing the real font size (not scaling) keeps the text sharp. */
+.brand{
+  position:fixed;left:0;top:0;z-index:30;
+  font-size:24px;line-height:1;white-space:nowrap;
+  pointer-events:none;
+}
+.hero-cta{position:absolute;left:50%;top:62%;transform:translateX(-50%)}
+
+.nav{
+  position:fixed;top:0;left:0;right:0;height:64px;z-index:20;background:var(--white);
+  border-bottom:1px solid var(--line);transform:translateY(-100%);
+}
+.nav-inner{height:100%;max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:flex-end;align-items:center}
+.nav a{color:var(--navy);font-weight:600;text-decoration:none;padding:8px 4px}
+.nav a:hover{text-decoration:underline}
+
+/* ---------- Cars section ---------- */
+.cars{max-width:1200px;margin:0 auto;padding:128px 24px 96px;min-height:100vh}
+.accent{width:72px;height:6px;background:var(--navy);transform:skewX(-20deg);margin-bottom:16px}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.section-head h2{font-size:clamp(38px,5vw,60px)}
+#carCount{color:var(--slate);font-weight:500;font-size:15px;padding-bottom:8px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:14px;padding:18px 0;margin-bottom:32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.toolbar label{display:flex;flex-direction:column;font-size:13px;font-weight:600;color:var(--slate);gap:6px;min-width:200px;flex:1 1 200px}
+select,input,textarea{border:1px solid #C9CCDB;border-radius:6px;padding:10px 12px;background:var(--white);color:var(--ink);width:100%}
+select{cursor:pointer}
+
+/* Cards size to their own content: no fixed height, and align-items:start stops
+   them stretching to match their neighbours. */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:28px;align-items:start}
+.card{
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--white);
+  display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .25s,transform .25s;
+}
+.card:hover{box-shadow:0 10px 30px rgba(21,22,63,.10);transform:translateY(-2px)}
+.card-media{position:relative;background:var(--mist)}
+.card-media img{width:100%;height:auto;max-height:360px;object-fit:cover;display:block}
+.badge{position:absolute;right:12px;bottom:12px;background:rgba(12,13,39,.8);color:var(--white);font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px}
+.ph{width:100%;height:180px;background:var(--mist);display:grid;place-items:center;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:30px;color:var(--navy);text-transform:uppercase}
+.card-body{padding:20px;display:flex;flex-direction:column;gap:6px}
+.card-meta{font-size:14px;font-weight:500;color:var(--slate)}
+.card h3{font-size:27px}
+.price{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:30px;color:var(--navy);line-height:1.1;margin-top:2px}
+.desc{color:var(--slate);font-size:15px;white-space:pre-line;margin-top:4px}
+.view-hint{margin-top:10px;font-size:14px;font-weight:600;color:var(--navy)}
+.empty{color:var(--slate);padding:48px 0;text-align:center}
+
+/* ---------- Car details window ---------- */
+.car-dialog{border:none;border-radius:var(--radius);padding:0;width:min(860px,94vw);max-height:90vh;color:var(--ink);background:var(--white);overflow:hidden;display:flex;flex-direction:column}
+.car-dialog[open]{display:flex}
+.car-dialog::backdrop{background:rgba(12,13,39,.6)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.dlg-head h3{font-size:30px}
+.dlg-close{background:none;border:none;font-size:34px;line-height:1;cursor:pointer;color:var(--navy);padding:0 4px}
+.dlg-scroll{overflow-y:auto}
+.gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;background:var(--mist)}
+.gallery img,.gallery .ph{flex:0 0 100%;width:100%;max-height:60vh;object-fit:contain;scroll-snap-align:start;display:block}
+.gallery .ph{height:260px}
+.dlg-body{padding:20px;display:flex;flex-direction:column;gap:8px}
+.dlg-desc{color:var(--slate);white-space:pre-line}
+.dlg-body .btn-wa{align-self:flex-start;margin-top:12px}
+
+/* ---------- Footer ---------- */
+footer{border-top:1px solid var(--line);background:var(--mist);margin-top:24px}
+.foot-inner{max-width:1200px;margin:0 auto;padding:32px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.foot-brand{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:22px;color:var(--navy);text-transform:uppercase;letter-spacing:.02em}
+.foot-inner a{color:var(--navy);font-weight:600;text-decoration:none}
+.foot-inner a:hover{text-decoration:underline}
+.foot-copy{color:var(--slate);font-size:14px;width:100%;text-align:center;margin-top:8px}
+
+/* ---------- Admin ---------- */
+.admin-wrap{max-width:900px;margin:0 auto;padding:32px 24px 80px}
+.admin-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;border-bottom:4px solid var(--navy);padding-bottom:14px}
+.admin-head h1{font-size:40px}
+.admin-head a{color:var(--navy);font-weight:600}
+.panel{border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:24px;background:var(--white)}
+.panel h2{font-size:28px;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px;color:var(--slate);margin-bottom:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.err{color:var(--danger);font-weight:600;margin-top:10px}
+.hint{color:var(--slate);font-size:14px;margin-bottom:14px}
+.list-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+#status{font-weight:600}
+#adminList{list-style:none;margin-top:12px}
+#adminList li{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding:12px 0}
+#adminList small{color:var(--slate)}
+
+@media (max-width:640px){
+  .two{grid-template-columns:1fr}
+  .foot-inner{justify-content:center;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .card,.card:hover{transition:none;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ PUBLIC SITE ============ -->
+<div id="site">
+  <div class="brand" id="brand" aria-label="Off Roadsells Lebanon">Off Roadsells Lebanon</div>
+
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#cars">All cars</a>
+    </div>
+  </header>
+
+  <section class="hero" id="top">
+    <p class="hero-cta"><a class="btn" href="#cars">Browse cars</a></p>
+  </section>
+
+  <main class="cars" id="cars">
+    <div class="accent"></div>
+    <div class="section-head">
+      <h2>All cars</h2>
+      <span id="carCount"></span>
+    </div>
+
+    <div class="toolbar">
+      <label>Brand
+        <select id="brandFilter"><option value="">All brands</option></select>
+      </label>
+      <label>Type
+        <select id="typeFilter"><option value="">All types</option></select>
+      </label>
+      <label>Sort by
+        <select id="sortBy">
+          <option value="newest">Newest</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="grid" id="carGrid"></div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <span class="foot-brand">Off Roadsells Lebanon</span>
+      <a href="#" id="footWhatsapp" target="_blank" rel="noopener">WhatsApp +961 71 110 820</a>
+      <p class="foot-copy">© Off Roadsells Lebanon</p>
+    </div>
+  </footer>
+</div>
+
+<!-- Car details window (opened by clicking a card) -->
+<dialog id="carDialog" class="car-dialog" aria-labelledby="dlgTitle">
+  <div class="dlg-head">
+    <h3 id="dlgTitle"></h3>
+    <button class="dlg-close" id="dlgClose" type="button" aria-label="Close">&times;</button>
+  </div>
+  <div class="dlg-scroll">
+    <div class="gallery" id="dlgGallery"></div>
+    <div class="dlg-body">
+      <p class="card-meta" id="dlgMeta"></p>
+      <p class="price" id="dlgPrice"></p>
+      <p class="dlg-desc" id="dlgDesc"></p>
+      <a class="btn btn-wa" id="dlgWhatsapp" href="#" target="_blank" rel="noopener">Ask on WhatsApp</a>
+    </div>
+  </div>
+</dialog>
+
+<!-- ============ ADMIN (secret page) ============ -->
+<div id="admin" hidden>
+  <div class="admin-wrap">
+    <header class="admin-head">
+      <h1>Admin Controls</h1>
+      <a href="#">Back to public site</a>
+    </header>
+
+    <form id="loginForm" class="panel" autocomplete="off">
+      <h2>Unlock</h2>
+      <label class="field">Password
+        <input type="password" id="pw" required>
+      </label>
+      <button class="btn" type="submit">Unlock</button>
+      <p class="err" id="loginErr" hidden>Wrong password.</p>
+    </form>
+
+    <div id="editor" hidden>
+      <div class="panel" id="tokenPanel" hidden>
+        <h2>Connect to the website (one time)</h2>
+        <p class="hint">Paste the access token you were given. It is saved only in this browser.</p>
+        <label class="field">Access token
+          <input type="password" id="ghToken" autocomplete="off">
+        </label>
+        <button class="btn" id="saveTokenBtn" type="button">Save token</button>
+      </div>
+
+      <form id="carForm" class="panel" autocomplete="off">
+        <h2>Add a car</h2>
+        <div class="two">
+          <label class="field">Brand
+            <input name="brand" list="brandList" required>
+            <datalist id="brandList"></datalist>
+          </label>
+          <label class="field">Model
+            <input name="model" required>
+          </label>
+          <label class="field">Year
+            <input name="year" type="number" min="1950" max="2035">
+          </label>
+          <label class="field">Price (USD)
+            <input name="price" type="number" min="0" step="1" required>
+          </label>
+          <label class="field">Type
+            <select name="type" required id="typeSelect"></select>
+          </label>
+          <label class="field">Photos
+            <input type="file" id="photoInput" accept="image/*" multiple>
+            <small class="hint">Optional. Select as many as you like (up to 30) at once. The first photo is the main one. Large photos are resized automatically.</small>
+          </label>
+        </div>
+        <label class="field">Description
+          <textarea name="description" rows="6" placeholder="Engine, mileage, condition, extras, anything a buyer should know."></textarea>
+        </label>
+        <button class="btn" type="submit">Add car</button>
+      </form>
+
+      <div class="panel">
+        <div class="list-head">
+          <h2>Cars (<span id="count">0</span>)</h2>
+          <div class="btn-row">
+            <button class="btn ghost" id="tokenBtn" type="button">Change token</button>
+            <button class="btn ghost" id="downloadBtn" type="button">Download backup</button>
+            <button class="btn" id="publishBtn" type="button">Publish to website</button>
+          </div>
+        </div>
+        <p class="hint" id="status">Press Publish to put your changes on the website. It takes about a minute to show up.</p>
+        <ul id="adminList"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== SETTINGS: change these before you go live ===== */
+const SECRET_ROUTE = "adminpage";
+const ADMIN_PASSWORD = "YamenBBG";
+const TYPES = ["ATV", "UTV", "4WD", "Buggy", "Dirt bike"];
+const MAX_PHOTOS = 30;
+
+/* WhatsApp: digits only, with country code, no + or spaces */
+const WHATSAPP_NUMBER = "96171110820";
+
+/* GitHub repository the site is hosted from */
+const GITHUB_OWNER = "LancerSoftwareSolutions";
+const GITHUB_REPO = "OffRoadsellsLebanon";
+const GITHUB_BRANCH = "main";
+const DATA_FILE = "cars.json";
+const GH_API = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`;
+
+let cars = [];
+
+/* ===== Helpers ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => (n || n === 0) && n !== "" ? "$" + Number(n).toLocaleString("en-US") : "Call for price";
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// Cars can have a list of photos. Older cars with a single photo still work.
+const imagesOf = c => Array.isArray(c.images) ? c.images : (c.image ? [c.image] : []);
+const carName = c => `${c.year ? c.year + " " : ""}${c.brand} ${c.model}`;
+
+async function loadCars() {
+  try {
+    const res = await fetch("cars.json", { cache: "no-store" });
+    cars = res.ok ? await res.json() : [];
+  } catch (e) {
+    cars = [];
+  }
+}
+
+/* ===== WhatsApp links ===== */
+function whatsappLink(message) {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+function setupWhatsappLinks() {
+  $("footWhatsapp").href = whatsappLink("Hi, I'm interested in a car from Off Roadsells Lebanon.");
+  $("footWhatsapp").textContent = "WhatsApp +961 71 110 820";
+}
+
+/* ===== Landing: brand glides into the navbar ===== */
+// Width of the brand text per 1px of font size, measured once so we can
+// work out sizes without changing the text's scale (which blurs it).
+let brandWidthPerPx = 0;
+
+function measureBrand() {
+  const brand = $("brand");
+  brand.style.fontSize = "100px";
+  const w = brand.getBoundingClientRect().width;
+  brand.style.fontSize = "";
+  if (w > 0) brandWidthPerPx = w / 100;
+}
+
+function layoutBrand() {
+  if (!brandWidthPerPx) return;
+  const brand = $("brand");
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  // Start: as large as fits the screen width (max 128px), centred over the hero.
+  // End: small, at the left of the navbar.
+  const startSize = Math.min(128, (W * 0.9) / brandWidthPerPx);
+  const endSize = 22;
+
+  // Progress: 0 at the top, 1 once scrolled half a screen. Eased for smoothness.
+  const p = clamp(window.scrollY / (H * 0.5), 0, 1);
+  const t = p * p * (3 - 2 * p);
+
+  const size = lerp(startSize, endSize, t);
+  const startWidth = brandWidthPerPx * startSize;
+
+  const x = lerp(W / 2 - startWidth / 2, 24, t);
+  const y = lerp(H * 0.42 - startSize / 2, 32 - endSize / 2, t);
+
+  brand.style.fontSize = size + "px";
+  brand.style.transform = `translate(${x}px, ${y}px)`;
+
+  // Navbar slides down in step with the brand
+  $("nav").style.transform = `translateY(${(t - 1) * 100}%)`;
+}
+
+window.addEventListener("scroll", layoutBrand, { passive: true });
+window.addEventListener("resize", () => { measureBrand(); layoutBrand(); });
+
+/* ===== Public: filters and grid ===== */
+function fillSelect(el, values, allLabel) {
+  const current = el.value;
+  el.innerHTML = `<option value="">${allLabel}</option>` +
+    values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  el.value = values.includes(current) ? current : "";
+}
+
+function renderFilters() {
+  const brands = [...new Set(cars.map(c => c.brand.trim()))].sort();
+  fillSelect($("brandFilter"), brands, "All brands");
+  fillSelect($("typeFilter"), TYPES, "All types");
+}
+
+// The card shows the main photo, the title, price and description.
+// Its height depends on how much content it has.
+function cardHTML(c) {
+  const imgs = imagesOf(c);
+  const name = carName(c);
+  const media = imgs.length
+    ? `<div class="card-media">
+         <img src="${esc(imgs[0])}" alt="${esc(name)}" loading="lazy">
+         ${imgs.length > 1 ? `<span class="badge">${imgs.length} photos</span>` : ""}
+       </div>`
+    : `<div class="ph">${esc(c.type)}</div>`;
+
+  return `
+    <article class="card" data-id="${esc(c.id)}" tabindex="0" role="button" aria-label="View details: ${esc(name)}">
+      ${media}
+      <div class="card-body">
+        <p class="card-meta">${esc(c.type)}${c.year ? " · " + esc(c.year) : ""}</p>
+        <h3>${esc(c.brand)} ${esc(c.model)}</h3>
+        <p class="price">${money(c.price)}</p>
+        ${c.description ? `<p class="desc">${esc(c.description)}</p>` : ""}
+        <span class="view-hint">View details</span>
+      </div>
+    </article>`;
+}
+
+function renderCars() {
+  const brand = $("brandFilter").value;
+  const type = $("typeFilter").value;
+  const sort = $("sortBy").value;
+
+  let list = cars.filter(c => (!brand || c.brand === brand) && (!type || c.type === type));
+  if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
+  else if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
+  else list.sort((a, b) => (b.created || 0) - (a.created || 0));
+
+  $("carCount").textContent = `${list.length} ${list.length === 1 ? "car" : "cars"}`;
+  $("carGrid").innerHTML = list.length
+    ? list.map(cardHTML).join("")
+    : `<p class="empty">No cars match these filters yet. Try another brand or type.</p>`;
+}
+
+["brandFilter", "typeFilter", "sortBy"].forEach(id => $(id).addEventListener("change", renderCars));
+
+/* ===== Car details window ===== */
+function openCar(id) {
+  const c = cars.find(x => x.id === id);
+  if (!c) return;
+  const name = carName(c);
+  const imgs = imagesOf(c);
+
+  $("dlgTitle").textContent = name;
+
+  const gallery = $("dlgGallery");
+  gallery.innerHTML = "";
+  if (imgs.length) {
+    imgs.forEach(src => {
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = name;
+      img.loading = "lazy";
+      gallery.appendChild(img);
+    });
+  } else {
+    const ph = document.createElement("div");
+    ph.className = "ph";
+    ph.textContent = c.type;
+    gallery.appendChild(ph);
+  }
+  gallery.scrollLeft = 0;
+
+  $("dlgMeta").textContent = `${c.type}${c.year ? " · " + c.year : ""}`;
+  $("dlgPrice").textContent = money(c.price);
+  $("dlgDesc").textContent = c.description || "";
+  $("dlgDesc").hidden = !c.description;
+  $("dlgWhatsapp").href = whatsappLink(`Hi, I'm interested in the ${name} (${c.type}) listed at ${money(c.price)}.`);
+
+  $("carDialog").showModal();
+}
+
+function closeCar() {
+  $("carDialog").close();
+}
+
+$("carGrid").addEventListener("click", e => {
+  const card = e.target.closest(".card");
+  if (card) openCar(card.dataset.id);
+});
+
+$("carGrid").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const card = e.target.closest(".card");
+  if (!card) return;
+  e.preventDefault();
+  openCar(card.dataset.id);
+});
+
+$("dlgClose").addEventListener("click", closeCar);
+
+// Clicking the dark area outside the window closes it
+$("carDialog").addEventListener("click", e => {
+  if (e.target === $("carDialog")) closeCar();
+});
+
+/* ===== Admin ===== */
+function renderAdminList() {
+  $("count").textContent = cars.length;
+  $("adminList").innerHTML = cars.length
+    ? cars.map(c => {
+        const n = imagesOf(c).length;
+        return `
+        <li>
+          <span><strong>${esc(c.brand)} ${esc(c.model)}</strong>
+          <small>${esc(c.type)} · ${money(c.price)}${c.year ? " · " + esc(c.year) : ""} · ${n} ${n === 1 ? "photo" : "photos"}</small></span>
+          <button class="btn danger" type="button" data-id="${esc(c.id)}">Delete</button>
+        </li>`;
+      }).join("")
+    : `<li><small>No cars yet. Add the first one above.</small></li>`;
+}
+
+function renderBrandList() {
+  const brands = [...new Set(cars.map(c => c.brand.trim()))].sort();
+  $("brandList").innerHTML = brands.map(b => `<option value="${esc(b)}"></option>`).join("");
+}
+
+function setupAdminForm() {
+  $("typeSelect").innerHTML = TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("");
+}
+
+$("loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  if ($("pw").value === ADMIN_PASSWORD) {
+    $("loginForm").hidden = true;
+    $("editor").hidden = false;
+    $("pw").value = "";
+    $("tokenPanel").hidden = !!getToken();
+    renderBrandList();
+    renderAdminList();
+  } else {
+    $("loginErr").hidden = false;
+  }
+});
+
+$("carForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const form = e.target;
+  const f = new FormData(form);
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const files = [...$("photoInput").files];
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  if (files.length > MAX_PHOTOS) {
+    alert(`Please choose ${MAX_PHOTOS} photos or fewer for one car.`);
+    return;
+  }
+
+  submitBtn.disabled = true;
+  try {
+    const images = await uploadCarPhotos(id, files);
+
+    cars.push({
+      id,
+      created: Date.now(),
+      brand: String(f.get("brand")).trim(),
+      model: String(f.get("model")).trim(),
+      year: Number(f.get("year")) || null,
+      price: Number(f.get("price")),
+      type: String(f.get("type")),
+      images,
+      description: String(f.get("description")).trim()
+    });
+    form.reset();
+    renderAdminList();
+    renderBrandList();
+    setStatus("Car added. Press Publish to put it on the website.");
+  } catch (err) {
+    setStatus(err.message, true);
+    alert(err.message);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+$("adminList").addEventListener("click", e => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+  const car = cars.find(c => c.id === id);
+  if (car && confirm(`Delete ${car.brand} ${car.model}?`)) {
+    cars = cars.filter(c => c.id !== id);
+    renderAdminList();
+    renderBrandList();
+  }
+});
+
+$("downloadBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(cars, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cars.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+/* ===== Photos: resize in the browser, then save all of them in one commit ===== */
+function resizeImage(file, maxSize = 1200) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error("Could not prepare that photo.")),
+        "image/jpeg",
+        0.85
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("That file isn't a photo the browser can read. Try a JPG or PNG."));
+    };
+    img.src = url;
+  });
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = () => reject(new Error("Could not read the photo."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Resizes all the chosen photos, then saves them together in one commit.
+// Returns the list of photo paths, in the order they were chosen.
+async function uploadCarPhotos(carId, files) {
+  if (!files.length) return [];
+
+  const prepared = [];
+  for (let i = 0; i < files.length; i++) {
+    setStatus(`Preparing photo ${i + 1} of ${files.length}…`);
+    const blob = await resizeImage(files[i]);
+    prepared.push({
+      path: `cars/${carId}-${i + 1}.jpg`,
+      base64: await blobToBase64(blob)
+    });
+  }
+
+  setStatus(`Saving ${files.length} ${files.length === 1 ? "photo" : "photos"}…`);
+  await commitFiles(prepared, `Add ${files.length} photo(s) for car ${carId}`);
+  return prepared.map(p => p.path);
+}
+
+/* ===== Publish to GitHub ===== */
+function getToken() {
+  try { return localStorage.getItem("ghToken") || ""; } catch (e) { return ""; }
+}
+
+function setStatus(msg, isError) {
+  const s = $("status");
+  s.textContent = msg;
+  s.style.color = isError ? "var(--danger)" : "var(--slate)";
+}
+
+// UTF-8 safe base64 (GitHub expects base64 file content)
+const toBase64 = str => btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+
+// Small wrapper around the GitHub API that adds the token and checks for errors
+async function gh(path, method = "GET", body) {
+  const token = getToken();
+  if (!token) {
+    $("tokenPanel").hidden = false;
+    throw new Error("Save your access token first.");
+  }
+  const res = await fetch(GH_API + path, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(body ? { "Content-Type": "application/json" } : {})
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub returned error ${res.status}. Check the token has Contents: Read and write access, and that the repository name is correct.`);
+  }
+  return res.json();
+}
+
+// Saves one or more files to the branch as a single commit.
+// Each item is { path, base64 }.
+async function commitFiles(files, message) {
+  // 1. Find the latest commit on the branch
+  const ref = await gh(`/git/ref/heads/${GITHUB_BRANCH}`);
+  const parentSha = ref.object.sha;
+  const parent = await gh(`/git/commits/${parentSha}`);
+
+  // 2. Upload each file's content, a few at a time to stay within GitHub's limits
+  const blobs = [];
+  for (let i = 0; i < files.length; i += 5) {
+    const batch = files.slice(i, i + 5);
+    const results = await Promise.all(
+      batch.map(f => gh("/git/blobs", "POST", { content: f.base64, encoding: "base64" }))
+    );
+    blobs.push(...results);
+  }
+
+  // 3. Build a new folder tree that includes the new files
+  const tree = await gh("/git/trees", "POST", {
+    base_tree: parent.tree.sha,
+    tree: files.map((f, i) => ({ path: f.path, mode: "100644", type: "blob", sha: blobs[i].sha }))
+  });
+
+  // 4. Create the commit and move the branch to it
+  const commit = await gh("/git/commits", "POST", { message, tree: tree.sha, parents: [parentSha] });
+  await gh(`/git/refs/heads/${GITHUB_BRANCH}`, "PATCH", { sha: commit.sha });
+}
+
+$("saveTokenBtn").addEventListener("click", () => {
+  const token = $("ghToken").value.trim();
+  if (!token) return;
+  try { localStorage.setItem("ghToken", token); } catch (e) {}
+  $("ghToken").value = "";
+  $("tokenPanel").hidden = true;
+  setStatus("Token saved. Press Publish to update the website.");
+});
+
+$("tokenBtn").addEventListener("click", () => {
+  $("tokenPanel").hidden = false;
+  $("ghToken").focus();
+  setStatus("Paste the new token above and click Save token.");
+});
+
+async function publishCars() {
+  if (!getToken()) {
+    $("tokenPanel").hidden = false;
+    setStatus("Save your access token first.", true);
+    return;
+  }
+
+  $("publishBtn").disabled = true;
+  setStatus("Publishing…");
+  try {
+    await commitFiles(
+      [{ path: DATA_FILE, base64: toBase64(JSON.stringify(cars, null, 2) + "\n") }],
+      `Update car listings (${cars.length} cars)`
+    );
+    setStatus("Published. The website updates in about a minute.");
+  } catch (err) {
+    setStatus(err.message, true);
+  } finally {
+    $("publishBtn").disabled = false;
+  }
+}
+
+$("publishBtn").addEventListener("click", publishCars);
+
+/* ===== Routing: secret hash shows admin, anything else shows the site ===== */
+function route() {
+  const isAdmin = location.hash === "#/" + SECRET_ROUTE;
+  $("site").hidden = isAdmin;
+  $("admin").hidden = !isAdmin;
+  if (isAdmin) {
+    setupAdminForm();
+    window.scrollTo(0, 0);
+  } else {
+    measureBrand();
+    layoutBrand();
+  }
+}
+window.addEventListener("hashchange", route);
+
+/* ===== Start ===== */
+setupWhatsappLinks();
+measureBrand();
+layoutBrand();
+loadCars().then(() => {
+  renderFilters();
+  renderCars();
+  route();
+});
+// Re-measure once the font has loaded, so the brand's size is exact
+document.fonts && document.fonts.ready.then(() => { measureBrand(); layoutBrand(); });
+</script>
+</body>
+</html>
