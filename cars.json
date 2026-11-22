@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": "mws5t1gg8rlm",
+    "created": 1795371455518,
+    "brand": "Toyota",
+    "model": "Corolla",
+    "year": 2011,
+    "price": 2500,
+    "type": "4WD",
+    "images": [
+      "cars/mws5t1gg8rlm-1.jpg",
+      "cars/mws5t1gg8rlm-2.jpg",
+      "cars/mws5t1gg8rlm-3.jpg"
+    ],
+    "description": "Test iuwbfubwegubpwubegwubgepubga"
+  }
+]
