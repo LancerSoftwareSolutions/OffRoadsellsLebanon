@@ -1,0 +1,24 @@
+[
+  {
+    "id": "sample1",
+    "created": 1763000000000,
+    "brand": "Polaris",
+    "model": "RZR XP 1000",
+    "year": 2022,
+    "price": 18500,
+    "type": "UTV",
+    "image": "",
+    "description": "Two-seater, 110 hp, power steering, roll cage, clean title. Recently serviced with new belts."
+  },
+  {
+    "id": "sample2",
+    "created": 1763100000000,
+    "brand": "Can-Am",
+    "model": "Outlander 500",
+    "year": 2020,
+    "price": 6200,
+    "type": "ATV",
+    "image": "",
+    "description": "4x4 with winch, low hours, good tires. Ready to ride."
+  }
+]
